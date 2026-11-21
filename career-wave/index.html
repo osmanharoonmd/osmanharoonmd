@@ -4,6 +4,86 @@
 @media(max-width:1050px){.nav{gap:12px}.hero h1{font-size:40px}.cards{grid-template-columns:repeat(2,1fr)}.cards .jobcard:last-child{display:none}}
 @media(max-width:760px){.shell{margin:0 auto;padding:0}.panel{border-radius:0;border-left:0;border-right:0}.header{height:62px;padding:0 15px}.brand{min-width:0}.brand img{width:150px;max-height:50px}.nav{display:none}.mobile{display:block}.follow{padding:9px 10px}.hero{grid-template-columns:1fr;min-height:0;padding:26px 20px 0}.hero h1{font-size:37px}.hero p{font-size:14px}.hero-art{height:210px;margin-top:7px}.hero-art svg{max-width:310px}.scribble{font-size:18px}.categories{grid-template-columns:repeat(2,1fr);gap:10px;padding:14px}.cat{min-height:100px}.section{padding:18px 14px 20px}.sectionhead h2{font-size:20px}.cards{grid-template-columns:1fr}.cards .jobcard:last-child{display:block}.ad{margin:14px;min-height:68px}.ad.infeed{margin:14px 0}.insta{margin:0 14px 16px;padding:15px;align-items:flex-start}.insta h3{font-size:13px}.insta p{font-size:10px}.insta-icon{width:40px;height:40px;flex:0 0 40px}.insta .secondary{font-size:10px;padding:8px 10px;white-space:nowrap}.trust{grid-template-columns:repeat(2,1fr);padding:0 12px 16px}.trust div{justify-content:flex-start;border:0;border-bottom:1px solid #e7edf5;padding:11px 7px}.footer{padding:18px;flex-wrap:wrap}.pagebanner{padding:22px 18px}.pagebanner h1{font-size:25px}.layout{grid-template-columns:1fr;padding:14px}.filters{border:1px solid #e5edf6;border-radius:12px;padding:12px}.result{grid-template-columns:50px minmax(0,1fr);gap:10px;padding:12px}.result .logo{width:48px;height:48px}.resultactions{grid-column:2;flex-direction:row;align-items:center;justify-content:space-between}.detail{padding:16px 14px 24px}.detailtop{grid-template-columns:1fr}.detailtop h1{font-size:25px}.detailactions{align-items:flex-start;flex-direction:row;flex-wrap:wrap}.detailgrid{grid-template-columns:1fr}.detailgrid aside{order:-1}.detailmeta{gap:10px}}
 @media(min-width:761px) and (max-width:1100px){.layout{grid-template-columns:185px minmax(0,1fr)}.detailgrid{grid-template-columns:minmax(0,1fr) 230px}.header{padding:0 18px}}
+
+/* Career Wave — Corporate Blue design system; existing logo artwork/colors retained */
+:root{
+ --navy:#102A56;--blue:#2563EB;--blue-deep:#1D4ED8;--blue-soft:#DBEAFE;
+ --muted:#64748B;--line:#E2EAF4;--pale:#EFF6FF;
+ --brand:#2563EB;--brand-bright:#3B82F6;--brand-deep:#1D4ED8;
+ --brand-pale:#EFF6FF;--brand-gradient:linear-gradient(135deg,#1D4ED8,#2563EB 58%,#60A5FA);
+ --ink:#1F2937;--surface:#FFFFFF;--page:#F7FAFF;
+}
+body{background:linear-gradient(135deg,#F1F6FD,#F8FAFD 52%,#EEF5FF);color:var(--ink)}
+.panel{background:var(--surface);border-color:#E3EBF5;box-shadow:0 8px 26px rgba(16,42,86,.07)}
+.header{background:#fff;border-bottom-color:#E5ECF5}
+.nav a{color:#263B5B}
+.nav a:hover,.link,.bottom button{color:var(--blue-deep)}
+.iconbtn{background:#EFF4FB;color:var(--navy)}
+.follow{background:var(--navy);color:#fff}
+.hero{background:linear-gradient(112deg,#EFF6FF 0%,#E2EEFF 60%,#D2E5FF 100%)}
+.hero h1{color:var(--navy)}
+.hero h1 span{color:var(--blue)}
+.hero p{color:#425675}
+.hero:after{border-color:rgba(255,255,255,.72);box-shadow:0 0 0 35px rgba(255,255,255,.18),0 0 0 70px rgba(255,255,255,.12)}
+.searchbar{box-shadow:0 7px 20px rgba(16,42,86,.10)}
+.primary{background:var(--brand-gradient);color:#fff;box-shadow:0 5px 12px rgba(37,99,235,.20)}
+.ad{border-color:#B9CDE8;background:linear-gradient(90deg,#F8FBFF,#EFF6FF);color:#7185A2}
+.ad:before{color:#8AA0BE}
+.categories,.section,.trust{background:#fff}
+.cat{border:1px solid rgba(16,42,86,.035);transition:transform .18s ease,box-shadow .18s ease}
+.cat:hover{transform:translateY(-2px);box-shadow:0 8px 18px rgba(16,42,86,.08)}
+.cat.blue{background:#EAF2FF;color:#1D4ED8}
+.cat.green{background:#EAF6EF;color:#287447}
+.cat.purple{background:#F1EDFF;color:#6246A5}
+.cat.orange{background:#FFF4E8;color:#A95A16}
+.jobcard{background:#fff;border-color:#E4EBF4;box-shadow:0 4px 14px rgba(16,42,86,.055)}
+.jobcard:hover,.result:hover{border-color:#BFD2EE;box-shadow:0 8px 20px rgba(16,42,86,.08)}
+.tag.gov{background:#E7F5EC;color:#246B43}
+.tag.private{background:#EAF0FF;color:#3157A4}
+.tag.intern{background:#F1EDFF;color:#6246A5}
+.tag.software{background:#E5F3FF;color:#17608F}
+.posted,.company,.meta,.results-top p{color:var(--muted)}
+.logo{background:#F1F5FA;color:var(--navy)}
+.insta{background:linear-gradient(110deg,#102A56,#174A83);color:#fff}
+.insta p{color:#DCE9FA}
+.secondary{border-color:#fff;color:#fff}
+.trust div{border-right-color:#E5ECF5}
+.footer{background:linear-gradient(110deg,#102A56,#173D70);border-top:4px solid #2563EB;color:#fff}
+.footerlinks a{color:#E3EDFA}
+.footerlinks a:hover{color:#93C5FD}
+.copy{background:#0B1F40;color:#C6D6EC;border-top:1px solid #25446F}
+.pagebanner{background:linear-gradient(100deg,#EFF6FF,#DCEAFF)}
+.pagebanner h1{color:var(--navy)}
+.pagebanner p{color:#4D6382}
+.tabs{border-bottom-color:#E8EEF6}
+.tab{background:#F0F4FA;color:#344B6C}
+.tab.active{background:#1D4ED8;color:#fff}
+.filters{border-right-color:#E5ECF5}
+.group{border-top-color:#E8EEF6}
+.option{color:#344B6C}
+.option input{accent-color:#2563EB}
+.select{border-color:#D8E3F0;color:#263B5B;background:#fff}
+.select:focus,.searchbar:focus-within{outline:2px solid rgba(37,99,235,.18);border-color:#7AA7F8}
+.result{border-color:#E4EBF4;box-shadow:0 3px 12px rgba(16,42,86,.045)}
+.result p{color:#5B6F8B}
+.back{color:#405A7C}
+.detailmeta{color:#344B6C}
+.detailsection{border-color:#E2EAF4}
+.detailsection h2{background:#EAF2FF;color:#173B70}
+.content{color:#344B6C}
+.sidecard{background:#F8F6EC;border-color:#EEE7CC}
+.sidecard a{border-top-color:#EAE3C9;color:#1D4ED8}
+.sidecard.info{background:#EFF6FF;border-color:#DCE8F8}
+.empty{border-color:#D4E0EF;color:#64748B}
+.switch.on{background:#2563EB}
+.brand-description{color:#586B86}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid #3B82F6;outline-offset:3px}
+@media(max-width:760px){
+ .footer{background:linear-gradient(110deg,#102A56,#173D70)}
+ .filters{border-color:#E2EAF4}
+ .trust div{border-bottom-color:#E5ECF5}
+}
+
 </style><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script></head><body><div class="shell"><div class="panel"><header class="header"><a class="brand" href="#alljobs" id="brandHome" aria-label="Career Wave home"><img src="/logo.svg" alt="Career Wave — Your Dream Job, Just One Step Away"></a><div class="actions"><button class="iconbtn" id="topSearch" aria-label="Search">⌕</button><a class="follow" href="https://www.instagram.com/" target="_blank" rel="noreferrer">Follow Us ◎</a></div></header>
 <main id="home"><section class="hero"><div class="hero-copy"><h1>Build Your Future<br>With The Right<br><span>Opportunity.</span></h1><p>Find the latest government jobs, private jobs, internships and career opportunities across India.</p><form class="searchbar" id="heroSearch"><span>⌕</span><input id="searchInput" placeholder="Search jobs, companies, qualifications..."><button class="primary">Search</button></form></div><div class="hero-art"><svg viewBox="0 0 440 330" role="img" aria-label="Illustration of a student with books"><ellipse cx="220" cy="315" rx="150" ry="12" fill="#7db7ed" opacity=".3"/><path d="M90 310c10-70 28-120 82-142l76-9c72 10 98 67 108 151Z" fill="#285b87"/><path d="M145 310c-4-55 5-107 46-135l45 1c44 28 54 76 52 134Z" fill="#f1f7ff"/><path d="M171 157c-7-49 5-99 48-107 42-8 70 28 67 74-2 43-25 72-60 72-28 0-49-15-55-39Z" fill="#f0b58e"/><path d="M168 118c-8-45 12-82 49-88 39-7 71 21 74 60-13-10-22-21-31-35-12 23-42 35-92 35Z" fill="#273448"/><path d="M174 113c8-8 18-11 28-10M244 105c9-5 18-5 27 0" stroke="#26354a" stroke-width="5" stroke-linecap="round"/><path d="M208 135c11 8 24 8 34-1" stroke="#a84d47" stroke-width="4" stroke-linecap="round"/><path d="M135 174c-24 20-40 56-48 112l46 13 39-111Z" fill="#3979ad"/><path d="M275 176c32 17 52 51 65 105l-42 14-44-109Z" fill="#3979ad"/><path d="M132 221c36-18 88-19 133-2l-10 89H142Z" fill="#d79c55"/><path d="M142 229h114v78H142z" fill="#f4d49b"/><path d="M155 241h88M155 254h74M155 267h80" stroke="#bd874a" stroke-width="3"/><path d="M130 183c-5 24 0 41 17 51M285 186c13 16 19 34 21 51" stroke="#f0b58e" stroke-width="16" stroke-linecap="round"/><path d="M188 310v-68M245 310v-68" stroke="#1b426c" stroke-width="8"/><circle cx="177" cy="129" r="4" fill="#fff"/><circle cx="267" cy="128" r="4" fill="#fff"/></svg><div class="scribble">Dream Big<br>Grow Bigger</div></div></section>
 <div class="ad"><strong>Homepage leaderboard · responsive ad space reserved</strong></div><section class="categories"><a class="cat blue" href="#jobs" data-category="Government"><span style="font-size:28px">♜</span><b>Government Jobs</b><small>Explore →</small></a><a class="cat green" href="#jobs" data-category="Private"><span style="font-size:28px">▦</span><b>Private Jobs</b><small>Explore →</small></a><a class="cat purple" href="#alljobs" data-category="Internship"><span style="font-size:28px">◆</span><b>Internships</b><small>Explore →</small></a><a class="cat blue" href="#alljobs" data-category="Software"><span style="font-size:28px">⌘</span><b>Software Jobs</b><small>Explore →</small></a><a class="cat orange" href="#jobs" data-category="Work From Home"><span style="font-size:28px">⌂</span><b>Work From Home</b><small>Explore →</small></a></section><div class="ad infeed"><strong>Homepage in-feed advertisement · responsive ad space reserved</strong></div><section class="section" id="jobs"><div class="sectionhead"><h2>Latest Opportunities</h2><a class="link" href="#alljobs" id="viewAll">View All Jobs →</a></div><div class="cards" id="homeCards"></div></section><div class="ad infeed"><strong>Sponsored placement / display ad space reserved</strong></div><section class="section" id="resources"><div class="sectionhead"><h2>Career Guidance & Resources</h2><a class="link" href="#alljobs">Explore →</a></div><div class="cards"><article class="jobcard"><span class="tag gov">Career Guide</span><h3>Resume writing guide</h3><p class="company">Build a clear, professional resume for your next opportunity.</p></article><article class="jobcard"><span class="tag private">Interview Prep</span><h3>Interview preparation</h3><p class="company">Practice common questions and improve your confidence.</p></article><article class="jobcard"><span class="tag intern">Skill Building</span><h3>Career planning</h3><p class="company">Explore skills and learning paths for growing careers.</p></article></div></section><div class="insta"><div class="insta-left"><div class="insta-icon">◎</div><div><h3>Follow Career Wave on Instagram</h3><p>Get instant job updates, exam alerts and career tips!</p></div></div><a class="secondary" href="https://www.instagram.com/" target="_blank" rel="noreferrer">Follow Now →</a></div><div class="trust"><div>ϟ &nbsp;Real-Time<br>Updates</div><div>♢ &nbsp;Verified<br>Information</div><div>▥ &nbsp;Career Guidance<br>& Resources</div><div>♥ &nbsp;Built for<br>Job Seekers</div></div></main>
