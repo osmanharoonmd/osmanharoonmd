@@ -81,11 +81,11 @@ function parseEntries(xml: string) {
 }
 function parseOfficialPage(html: string, pageUrl: string) {
   const base = new URL(pageUrl);
-  const positive = /recruitment|vacanc(?:y|ies)|job.?openings?|career.?openings?|advertisement|\\badvt\\b|notification|apply.?online|current.?openings|engagement|hiring|selection.?for.?posts/i;
+  const positive = /recruitment|vacanc(?:y|ies)|job.?openings?|career.?openings?|advertisement|\badvt\b|notification|apply.?online|current.?openings|engagement|hiring|selection.?for.?posts/i;
   const negative = /result|admit.?card|call.?letter|answer.?key|response.?sheet|score.?card|marksheet|cut.?off|cutoff|syllabus|scribe|guideline|booklet|training.?material|acquaint|tender|procurement|press.?release/i;
   const found = new Map<string, { title: string; link: string; description: string; raw: string }>();
   const rowRanges: Array<[number, number]> = [];
-  const clean = (v: string) => v.replace(/\\s+/g, " ").replace(/\\(\\s*\\d+(?:\\.\\d+)?\\s*(?:kb|mb)\\s*\\)/ig, "").trim();
+  const clean = (v: string) => v.replace(/\s+/g, " ").replace(/\(\s*\d+(?:\.\d+)?\s*(?:kb|mb)\s*\)/ig, "").trim();
   const addLink = (hrefRaw: string, anchorHtml: string, contextText = "") => {
     const href = hrefRaw.trim().replace(/&amp;/g, "&");
     const anchorTitle = clean(decodeXml(anchorHtml)).slice(0, 400);
@@ -97,26 +97,28 @@ function parseOfficialPage(html: string, pageUrl: string) {
     if (!(host === baseHost || host.endsWith("." + baseHost))) return;
     let pathName = "";
     try { pathName = decodeURIComponent(link.pathname.split("/").pop() || ""); } catch { pathName = link.pathname.split("/").pop() || ""; }
-    pathName = pathName.replace(/\\.[^.]+$/, "").replace(/[_-]+/g, " ");
+    pathName = pathName.replace(/\.[^.]+$/, "").replace(/[_-]+/g, " ");
     const candidateText = [anchorTitle, contextText, pathName, link.pathname].join(" ");
     if (negative.test(candidateText) || !positive.test(candidateText)) return;
     if (link.href === base.href || found.has(link.href)) return;
     const genericAnchor = !anchorTitle || /^(english|hindi|download|view|click here|apply now|pdf|here|details?)$/i.test(anchorTitle);
     const title = clean(genericAnchor ? pathName : anchorTitle) || clean(pathName) || "Official recruitment notification";
     const context = clean(contextText).slice(0, 1200);
-    found.set(link.href, { title, link: link.href, description: context || title,
-      raw: "Discovered on official page: " + pageUrl + "\\nPage listing text: " + context +
-        "\\nLink title: " + anchorTitle + "\\nOfficial link: " + link.href });
+    found.set(link.href, {
+      title, link: link.href, description: context || title,
+      raw: "Discovered on official page: " + pageUrl + "\nPage listing text: " + context +
+        "\nLink title: " + anchorTitle + "\nOfficial link: " + link.href,
+    });
   };
-  const rows = [...html.matchAll(/<tr\\b[^>]*>[\\s\\S]*?<\\/tr>/gi)];
+  const rows = [...html.matchAll(/<tr\b[^>]*>[\s\S]*?<\/tr>/gi)];
   for (const row of rows) {
     const rowStart = row.index ?? 0, rowHtml = row[0];
     rowRanges.push([rowStart, rowStart + rowHtml.length]);
     const rowText = decodeXml(rowHtml).slice(0, 1200);
-    const links = [...rowHtml.matchAll(/<a\\b[^>]*href=["']([^"']+)["'][^>]*>([\\s\\S]*?)<\\/a>/gi)];
+    const links = [...rowHtml.matchAll(/<a\b[^>]*href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi)];
     for (const link of links) addLink(link[1] ?? "", link[2] ?? "", rowText);
   }
-  const anchors = [...html.matchAll(/<a\\b[^>]*href=["']([^"']+)["'][^>]*>([\\s\\S]*?)<\\/a>/gi)];
+  const anchors = [...html.matchAll(/<a\b[^>]*href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi)];
   for (const anchor of anchors) {
     const index = anchor.index ?? 0;
     if (rowRanges.some(([from, to]) => index >= from && index < to)) continue;
