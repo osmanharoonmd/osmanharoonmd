@@ -70,14 +70,42 @@ function decodeXml(s: string) {
     .replace(/\s+/g, " ").trim();
 }
 function parseEntries(xml: string) {
-  const blocks = [...xml.matchAll(/<(item|entry)\b[^>]*>([\s\S]*?)<\/\1>/gi)].map((m) => m[2]);
+  const blocks = [...xml.matchAll(/<(item|entry)\\b[^>]*>([\\s\\S]*?)<\\/\\1>/gi)].map((m) => m[2]);
   return blocks.map((block) => {
-    const title = decodeXml(block.match(/<title\b[^>]*>([\s\S]*?)<\/title>/i)?.[1] ?? "");
-    const href = block.match(/<link\b[^>]*href=["']([^"']+)["'][^>]*\/?\s*>/i)?.[1];
-    const link = href ?? decodeXml(block.match(/<link\b[^>]*>([\s\S]*?)<\/link>/i)?.[1] ?? "");
-    const description = decodeXml(block.match(/<(description|summary|content:encoded)\b[^>]*>([\s\S]*?)<\/\1>/i)?.[2] ?? "");
+    const title = decodeXml(block.match(/<title\\b[^>]*>([\\s\\S]*?)<\\/title>/i)?.[1] ?? "");
+    const href = block.match(/<link\\b[^>]*href=["']([^"']+)["'][^>]*\\/?\\s*>/i)?.[1];
+    const link = href ?? decodeXml(block.match(/<link\\b[^>]*>([\\s\\S]*?)<\\/link>/i)?.[1] ?? "");
+    const description = decodeXml(block.match(/<(description|summary|content:encoded)\\b[^>]*>([\\s\\S]*?)<\\/\\1>/i)?.[2] ?? "");
     return { title, link, description, raw: decodeXml(block).slice(0, 12000) };
-  }).filter((x) => x.title && x.link && /^https:\/\//i.test(x.link));
+  }).filter((x) => x.title && x.link && /^https:\\/\\//i.test(x.link));
+}
+function parseOfficialPage(html: string, pageUrl: string) {
+  const base = new URL(pageUrl);
+  const keyword = /recruitment|vacanc|career|job|advertisement|notification|notice|apply|employment|selection|application|advt|walk.?in|post/i;
+  const anchors = [...html.matchAll(/<a\\b[^>]*href=["']([^"']+)["'][^>]*>([\\s\\S]*?)<\\/a>/gi)];
+  const found = new Map<string, { title: string; link: string; description: string; raw: string }>();
+  for (const match of anchors) {
+    const href = (match[1] ?? "").trim();
+    const title = decodeXml(match[2] ?? "").slice(0, 400);
+    if (!href || /^(javascript:|mailto:|tel:|#)/i.test(href)) continue;
+    let link: URL;
+    try { link = new URL(href, base); } catch { continue; }
+    if (link.protocol !== "https:") continue;
+    const host = link.hostname.toLowerCase();
+    const baseHost = base.hostname.toLowerCase();
+    const sameOfficialDomain = host === baseHost || host.endsWith("." + baseHost) || baseHost.endsWith("." + host);
+    if (!sameOfficialDomain) continue;
+    if (!keyword.test(title + " " + link.pathname) && !/\\.pdf(?:$|[?#])/i.test(link.pathname)) continue;
+    if (link.href === base.href || found.has(link.href)) continue;
+    const cleanTitle = title || link.pathname.split("/").filter(Boolean).pop() || "Official recruitment notice";
+    found.set(link.href, {
+      title: cleanTitle,
+      link: link.href,
+      description: title,
+      raw: "Discovered on official page: " + pageUrl + "\\nLink title: " + cleanTitle + "\\nOfficial link: " + link.href,
+    });
+  }
+  return [...found.values()].slice(0, 40);
 }
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
@@ -102,15 +130,15 @@ Deno.serve(async (req: Request) => {
   const errors: string[] = [];
   for (const source of sources ?? []) {
     try {
-      if (!["rss", "atom"].includes(source.source_type)) {
+      if (!["rss", "atom", "official_url"].includes(source.source_type)) {
         skipped++;
         await db.from("job_sources").update({
           last_checked_at: new Date().toISOString(),
-          last_error: "This source is a reference URL, not a machine-readable RSS/Atom feed.",
+          last_error: "Unsupported source type. Use RSS, Atom, or an official public webpage.",
         }).eq("id", source.id);
         continue;
       }
-      if (!safeFeedUrl(source.source_url)) throw new Error("Only public HTTPS feed URLs are allowed");
+      if (!safeFeedUrl(source.source_url)) throw new Error("Only public HTTPS source URLs are allowed");
       const response = await fetch(source.source_url, {
         headers: { "User-Agent": "CareerWaveJobFeedBot/1.0 (+https://careerwave.in)" },
         signal: AbortSignal.timeout(15000),
@@ -121,7 +149,7 @@ Deno.serve(async (req: Request) => {
       if (declaredLength > 3_000_000) throw new Error("Feed exceeds the 3 MB size limit");
       const xml = await response.text();
       if (xml.length > 3_000_000) throw new Error("Feed exceeds the 3 MB size limit");
-      const items = parseEntries(xml).slice(0, 30);
+      const items = (source.source_type === "official_url" ? parseOfficialPage(xml, source.source_url) : parseEntries(xml)).slice(0, 40);
       for (const item of items) {
         const { data: exists, error: lookupError } = await db.from("job_imports")
           .select("id").eq("source_url", item.link).limit(1).maybeSingle();
@@ -133,7 +161,7 @@ Deno.serve(async (req: Request) => {
           source_url: item.link,
           source_title: item.title,
           raw_content: item.raw || item.description || item.title,
-          extracted_data: { title: item.title, description: item.description, job_type: source.category },
+          extracted_data: { title: item.title, description: item.description, job_type: source.category, source_page_url: source.source_url, discovery_type: source.source_type },
           status: "pending",
         });
         if (insertError) throw insertError;
