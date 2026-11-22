@@ -81,46 +81,42 @@ function parseEntries(xml: string) {
 }
 function parseOfficialPage(html: string, pageUrl: string) {
   const base = new URL(pageUrl);
-  const keyword = /recruitment|vacanc|career|job|advertisement|notification|notice|apply|employment|selection|application|advt|walk.?in|post/i;
+  const positive = /recruitment|vacanc(?:y|ies)|job.?openings?|career.?openings?|advertisement|\\badvt\\b|notification|apply.?online|current.?openings|engagement|hiring|selection.?for.?posts/i;
+  const negative = /result|admit.?card|call.?letter|answer.?key|response.?sheet|score.?card|marksheet|cut.?off|cutoff|syllabus|scribe|guideline|booklet|training.?material|acquaint|tender|procurement|press.?release/i;
   const found = new Map<string, { title: string; link: string; description: string; raw: string }>();
   const rowRanges: Array<[number, number]> = [];
+  const clean = (v: string) => v.replace(/\\s+/g, " ").replace(/\\(\\s*\\d+(?:\\.\\d+)?\\s*(?:kb|mb)\\s*\\)/ig, "").trim();
   const addLink = (hrefRaw: string, anchorHtml: string, contextText = "") => {
     const href = hrefRaw.trim().replace(/&amp;/g, "&");
-    const anchorTitle = decodeXml(anchorHtml).slice(0, 400);
+    const anchorTitle = clean(decodeXml(anchorHtml)).slice(0, 400);
     if (!href || /^(javascript:|mailto:|tel:|#)/i.test(href)) return;
     let link: URL;
     try { link = new URL(href, base); } catch { return; }
     if (link.protocol !== "https:" || (link.port && link.port !== "443") || link.username || link.password) return;
-    const host = link.hostname.toLowerCase();
-    const baseHost = base.hostname.toLowerCase();
-    const sameOfficialDomain = host === baseHost || host.endsWith("." + baseHost);
-    if (!sameOfficialDomain) return;
-    if (!keyword.test(anchorTitle + " " + contextText + " " + link.pathname) &&
-        !/\.pdf(?:$|[?#])/i.test(link.pathname)) return;
+    const host = link.hostname.toLowerCase(), baseHost = base.hostname.toLowerCase();
+    if (!(host === baseHost || host.endsWith("." + baseHost))) return;
+    let pathName = "";
+    try { pathName = decodeURIComponent(link.pathname.split("/").pop() || ""); } catch { pathName = link.pathname.split("/").pop() || ""; }
+    pathName = pathName.replace(/\\.[^.]+$/, "").replace(/[_-]+/g, " ");
+    const candidateText = [anchorTitle, contextText, pathName, link.pathname].join(" ");
+    if (negative.test(candidateText) || !positive.test(candidateText)) return;
     if (link.href === base.href || found.has(link.href)) return;
-    const context = contextText.trim().slice(0, 700);
-    const betterTitle = context.length > anchorTitle.length && keyword.test(context) ? context : anchorTitle;
-    const cleanTitle = betterTitle || link.pathname.split("/").filter(Boolean).pop() || "Official recruitment notice";
-    found.set(link.href, {
-      title: cleanTitle,
-      link: link.href,
-      description: context || anchorTitle,
-      raw: "Discovered on official page: " + pageUrl + "\nPage listing text: " + context +
-        "\nLink title: " + anchorTitle + "\nOfficial link: " + link.href,
-    });
+    const genericAnchor = !anchorTitle || /^(english|hindi|download|view|click here|apply now|pdf|here|details?)$/i.test(anchorTitle);
+    const title = clean(genericAnchor ? pathName : anchorTitle) || clean(pathName) || "Official recruitment notification";
+    const context = clean(contextText).slice(0, 1200);
+    found.set(link.href, { title, link: link.href, description: context || title,
+      raw: "Discovered on official page: " + pageUrl + "\\nPage listing text: " + context +
+        "\\nLink title: " + anchorTitle + "\\nOfficial link: " + link.href });
   };
-
-  const rows = [...html.matchAll(/<tr\b[^>]*>[\s\S]*?<\/tr>/gi)];
+  const rows = [...html.matchAll(/<tr\\b[^>]*>[\\s\\S]*?<\\/tr>/gi)];
   for (const row of rows) {
-    const rowStart = row.index ?? 0;
-    const rowHtml = row[0];
+    const rowStart = row.index ?? 0, rowHtml = row[0];
     rowRanges.push([rowStart, rowStart + rowHtml.length]);
-    const rowText = decodeXml(rowHtml).slice(0, 700);
-    const links = [...rowHtml.matchAll(/<a\b[^>]*href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi)];
+    const rowText = decodeXml(rowHtml).slice(0, 1200);
+    const links = [...rowHtml.matchAll(/<a\\b[^>]*href=["']([^"']+)["'][^>]*>([\\s\\S]*?)<\\/a>/gi)];
     for (const link of links) addLink(link[1] ?? "", link[2] ?? "", rowText);
   }
-
-  const anchors = [...html.matchAll(/<a\b[^>]*href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi)];
+  const anchors = [...html.matchAll(/<a\\b[^>]*href=["']([^"']+)["'][^>]*>([\\s\\S]*?)<\\/a>/gi)];
   for (const anchor of anchors) {
     const index = anchor.index ?? 0;
     if (rowRanges.some(([from, to]) => index >= from && index < to)) continue;
@@ -182,7 +178,7 @@ Deno.serve(async (req: Request) => {
           source_url: item.link,
           source_title: item.title,
           raw_content: item.raw || item.description || item.title,
-          extracted_data: { title: item.title, description: item.description, job_type: source.category, source_page_url: source.source_url, discovery_type: source.source_type },
+          extracted_data: { title: item.title, description: "", job_type: source.category, source_page_url: source.source_url, discovery_type: source.source_type, needs_extraction: true, extraction_status: "discovered" },
           status: "pending",
         });
         if (insertError) throw insertError;
