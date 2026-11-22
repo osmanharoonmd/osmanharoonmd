@@ -109,6 +109,17 @@ function parseOfficialPage(html: string, pageUrl: string) {
       ? contextHeading.slice(0, 220)
       : clean(genericAnchor ? pathName : anchorTitle)) || "Official recruitment notification";
     const context = clean(contextText).slice(0, 1600);
+    const dateTokens = [...context.matchAll(/\b(\d{1,2}[./-]\d{1,2}[./-]\d{4}|\d{4}-\d{2}-\d{2})\b/g)].map(m => m[1]);
+    if (dateTokens.length) {
+      const rawDate = dateTokens[dateTokens.length - 1];
+      let closeDate = rawDate;
+      if (!/^\d{4}-/.test(rawDate)) {
+        const [dd, mm, yyyy] = rawDate.split(/[./-]/);
+        closeDate = yyyy + "-" + mm.padStart(2, "0") + "-" + dd.padStart(2, "0");
+      }
+      const todayIndia = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+      if (closeDate < todayIndia) return;
+    }
     found.set(link.href, {
       title, link: link.href, description: context || title,
       raw: "Discovered on official page: " + pageUrl + "\nPage listing text: " + context +
