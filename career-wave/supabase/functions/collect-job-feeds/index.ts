@@ -19,7 +19,7 @@ const githubJwks = createRemoteJWKSet(new URL(GITHUB_ISSUER + "/.well-known/jwks
 function isBlockedIp(host: string) {
   const h = host.toLowerCase().replace(/^\[|\]$/g, "");
   if (h === "localhost" || h.endsWith(".localhost") || h.endsWith(".local") ||
-      h === "::1" || h.startsWith("fc") || h.startsWith("fd") || h.startsWith("fe80:") ||
+      h === "::1" || h.startsWith("::ffff:") || h.startsWith("fc") || h.startsWith("fd") || h.startsWith("fe80:") ||
       h === "169.254.169.254" || h === "metadata.google.internal") return true;
   const m = h.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
   if (!m) return false;
@@ -32,7 +32,7 @@ function isBlockedIp(host: string) {
 function safeFeedUrl(raw: string) {
   try {
     const u = new URL(raw);
-    return u.protocol === "https:" && !u.username && !u.password &&
+    return u.protocol === "https:" && (!u.port || u.port === "443") && !u.username && !u.password &&
       !isBlockedIp(u.hostname) && !u.hostname.endsWith(".internal");
   } catch {
     return false;
@@ -90,7 +90,7 @@ function parseOfficialPage(html: string, pageUrl: string) {
     if (!href || /^(javascript:|mailto:|tel:|#)/i.test(href)) return;
     let link: URL;
     try { link = new URL(href, base); } catch { return; }
-    if (link.protocol !== "https:") return;
+    if (link.protocol !== "https:" || (link.port && link.port !== "443") || link.username || link.password) return;
     const host = link.hostname.toLowerCase();
     const baseHost = base.hostname.toLowerCase();
     const sameOfficialDomain = host === baseHost || host.endsWith("." + baseHost);
