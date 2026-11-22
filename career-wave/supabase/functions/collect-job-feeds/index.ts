@@ -2,7 +2,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 import { createRemoteJWKSet, jwtVerify } from "npm:jose@5.9.6";
 
 const cors = {
-  "Access-Control-Allow-Origin": "https://careerwave.in",
+  "Access-Control-Allow-Origin": Deno.env.get("APP_ORIGIN") ?? "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
   "Content-Type": "application/json",
@@ -93,7 +93,7 @@ function parseOfficialPage(html: string, pageUrl: string) {
     if (link.protocol !== "https:") continue;
     const host = link.hostname.toLowerCase();
     const baseHost = base.hostname.toLowerCase();
-    const sameOfficialDomain = host === baseHost || host.endsWith("." + baseHost) || baseHost.endsWith("." + host);
+    const sameOfficialDomain = host === baseHost || host.endsWith("." + baseHost);
     if (!sameOfficialDomain) continue;
     if (!keyword.test(title + " " + link.pathname) && !/\.pdf(?:$|[?#])/i.test(link.pathname)) continue;
     if (link.href === base.href || found.has(link.href)) continue;
