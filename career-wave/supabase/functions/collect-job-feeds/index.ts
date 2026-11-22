@@ -82,28 +82,49 @@ function parseEntries(xml: string) {
 function parseOfficialPage(html: string, pageUrl: string) {
   const base = new URL(pageUrl);
   const keyword = /recruitment|vacanc|career|job|advertisement|notification|notice|apply|employment|selection|application|advt|walk.?in|post/i;
-  const anchors = [...html.matchAll(/<a\b[^>]*href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi)];
   const found = new Map<string, { title: string; link: string; description: string; raw: string }>();
-  for (const match of anchors) {
-    const href = (match[1] ?? "").trim();
-    const title = decodeXml(match[2] ?? "").slice(0, 400);
-    if (!href || /^(javascript:|mailto:|tel:|#)/i.test(href)) continue;
+  const rowRanges: Array<[number, number]> = [];
+  const addLink = (hrefRaw: string, anchorHtml: string, contextText = "") => {
+    const href = hrefRaw.trim().replace(/&amp;/g, "&");
+    const anchorTitle = decodeXml(anchorHtml).slice(0, 400);
+    if (!href || /^(javascript:|mailto:|tel:|#)/i.test(href)) return;
     let link: URL;
-    try { link = new URL(href, base); } catch { continue; }
-    if (link.protocol !== "https:") continue;
+    try { link = new URL(href, base); } catch { return; }
+    if (link.protocol !== "https:") return;
     const host = link.hostname.toLowerCase();
     const baseHost = base.hostname.toLowerCase();
     const sameOfficialDomain = host === baseHost || host.endsWith("." + baseHost);
-    if (!sameOfficialDomain) continue;
-    if (!keyword.test(title + " " + link.pathname) && !/\.pdf(?:$|[?#])/i.test(link.pathname)) continue;
-    if (link.href === base.href || found.has(link.href)) continue;
-    const cleanTitle = title || link.pathname.split("/").filter(Boolean).pop() || "Official recruitment notice";
+    if (!sameOfficialDomain) return;
+    if (!keyword.test(anchorTitle + " " + contextText + " " + link.pathname) &&
+        !/\.pdf(?:$|[?#])/i.test(link.pathname)) return;
+    if (link.href === base.href || found.has(link.href)) return;
+    const context = contextText.trim().slice(0, 700);
+    const betterTitle = context.length > anchorTitle.length && keyword.test(context) ? context : anchorTitle;
+    const cleanTitle = betterTitle || link.pathname.split("/").filter(Boolean).pop() || "Official recruitment notice";
     found.set(link.href, {
       title: cleanTitle,
       link: link.href,
-      description: title,
-      raw: "Discovered on official page: " + pageUrl + "\nLink title: " + cleanTitle + "\nOfficial link: " + link.href,
+      description: context || anchorTitle,
+      raw: "Discovered on official page: " + pageUrl + "\nPage listing text: " + context +
+        "\nLink title: " + anchorTitle + "\nOfficial link: " + link.href,
     });
+  };
+
+  const rows = [...html.matchAll(/<tr\b[^>]*>[\s\S]*?<\/tr>/gi)];
+  for (const row of rows) {
+    const rowStart = row.index ?? 0;
+    const rowHtml = row[0];
+    rowRanges.push([rowStart, rowStart + rowHtml.length]);
+    const rowText = decodeXml(rowHtml).slice(0, 700);
+    const links = [...rowHtml.matchAll(/<a\b[^>]*href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi)];
+    for (const link of links) addLink(link[1] ?? "", link[2] ?? "", rowText);
+  }
+
+  const anchors = [...html.matchAll(/<a\b[^>]*href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi)];
+  for (const anchor of anchors) {
+    const index = anchor.index ?? 0;
+    if (rowRanges.some(([from, to]) => index >= from && index < to)) continue;
+    addLink(anchor[1] ?? "", anchor[2] ?? "");
   }
   return [...found.values()].slice(0, 40);
 }
