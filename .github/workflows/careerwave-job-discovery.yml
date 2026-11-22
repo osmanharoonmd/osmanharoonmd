@@ -23,8 +23,6 @@ jobs:
         env:
           SUPABASE_URL: https://tixpfrymuughmojwuvxq.supabase.co
           SUPABASE_PUBLISHABLE_KEY: ${{ vars.CAREERWAVE_SUPABASE_PUBLISHABLE_KEY }}
-          OIDC_REQUEST_URL: ${{ env.ACTIONS_ID_TOKEN_REQUEST_URL }}
-          OIDC_REQUEST_TOKEN: ${{ env.ACTIONS_ID_TOKEN_REQUEST_TOKEN }}
         run: |
           set -euo pipefail
           if [[ -z "${SUPABASE_PUBLISHABLE_KEY:-}" ]]; then
