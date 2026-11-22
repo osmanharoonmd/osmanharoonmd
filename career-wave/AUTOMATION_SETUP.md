@@ -8,11 +8,12 @@
 - Each run writes a summary to `audit_logs`; per-source check time and error remain in `job_sources`.
 
 ## Required one-time configuration before activation
-1. Add a GitHub repository variable named `CAREERWAVE_SUPABASE_PUBLISHABLE_KEY` with the project's public publishable key. This is a public client key, not a service-role secret.
-2. Deploy the updated `collect-job-feeds` Edge Function with JWT gateway verification disabled. The function validates either a real Supabase staff session or a GitHub OIDC token itself. Do not deploy the OIDC-capable function without reviewing this validation.
-3. Keep the GitHub workflow on the default `main` branch. The function accepts scheduled identity only for this exact repository, workflow file, and branch.
-4. Add approved official RSS/Atom feeds or public recruitment pages in Admin → Automation Centre. Official-page checks collect matching same-domain notification, vacancy, recruitment and PDF links as candidates.
-5. Run a manual workflow dispatch after activation and confirm the Admin queue and activity log.
+1. Deploy the updated `collect-job-feeds` Edge Function with JWT gateway verification disabled. The function validates either a real Supabase staff session or a GitHub OIDC token itself. Do not deploy the OIDC-capable function without reviewing this validation.
+2. Keep the GitHub workflow on the default `main` branch. The function accepts scheduled identity only for this exact repository, workflow file, and branch.
+3. Add approved official RSS/Atom feeds or public recruitment pages in Admin → Automation Centre. Official-page checks collect matching same-domain notification, vacancy, recruitment and PDF links as candidates.
+4. Run a manual workflow dispatch after activation and confirm the Admin queue and activity log.
+
+The workflow uses the same public Supabase publishable key already embedded in the public admin client. It does not store or expose the service-role key or any admin login credentials.
 
 ## Schedule and cost
 - Schedule: every four hours, with GitHub's normal schedule jitter/delay possible.
