@@ -127,7 +127,12 @@ function parseOfficialPage(html: string, pageUrl: string) {
   for (const anchor of anchors) {
     const index = anchor.index ?? 0;
     if (rowRanges.some(([from, to]) => index >= from && index < to)) continue;
-    addLink(anchor[1] ?? "", anchor[2] ?? "");
+    const before = html.slice(0, index);
+    const headingPattern = /(?:RECRUITMENT|ENGAGEMENT|HIRING|INVITING APPLICATIONS|WALK[ -]?IN)[^<>]{0,260}/gi;
+    let match: RegExpExecArray | null, heading = "";
+    while ((match = headingPattern.exec(before)) !== null) heading = match[0];
+    const context = heading ? decodeXml(heading + " " + anchor[2]) : "";
+    addLink(anchor[1] ?? "", anchor[2] ?? "", context);
   }
   return [...found.values()].slice(0, 40);
 }
