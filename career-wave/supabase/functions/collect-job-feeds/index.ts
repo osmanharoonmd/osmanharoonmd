@@ -83,6 +83,7 @@ function parseOfficialPage(html: string, pageUrl: string) {
   const base = new URL(pageUrl);
   const positive = /recruitment|vacanc(?:y|ies)|job.?openings?|career.?openings?|advertisement|(?:^|[^a-z])advt(?:[^a-z]|$)|notification|employment.?notice|engagement|hiring|selection.?for.?posts/i;
   const negative = /result|admit.?card|call.?letter|answer.?key|response.?sheet|score.?card|marksheet|cut.?off|cutoff|syllabus|scribe|guideline|booklet|training.?material|acquaint|tender|procurement|press.?release|biodata|bio.?data|ctc|undertaking|interview.?schedule|exam.?schedule|information.?handout|apply.?online|apply.?now|registration|application.?form|corrigendum|provisionally.?selected/i;
+  const negativeRow = /result|admit.?card|call.?letter|answer.?key|response.?sheet|score.?card|marksheet|cut.?off|cutoff|syllabus|scribe|guideline|booklet|training.?material|acquaint|tender|procurement|press.?release|interview.?schedule|exam.?schedule|information.?handout|corrigendum|provisionally.?selected/i;
   const found = new Map<string, { title: string; link: string; description: string; raw: string }>();
   const rowRanges: Array<[number, number]> = [];
   const clean = (v: string) => v.replace(/\s+/g, " ").replace(/\(\s*\d+(?:\.\d+)?\s*(?:kb|mb)\s*\)/ig, "").trim();
@@ -100,7 +101,7 @@ function parseOfficialPage(html: string, pageUrl: string) {
     try { pathName = decodeURIComponent(link.pathname.split("/").pop() || ""); } catch { pathName = link.pathname.split("/").pop() || ""; }
     pathName = pathName.replace(/\.[^.]+$/, "").replace(/[_-]+/g, " ");
     const linkText = [anchorTitle, pathName, link.pathname].join(" ");
-    if (negative.test(contextText) || !positive.test(linkText)) return;
+    if (negativeRow.test(contextText) || !positive.test(linkText)) return;
     if (link.href === base.href || found.has(link.href)) return;
     const genericAnchor = !anchorTitle || /^(english|hindi|download|view|click here|pdf|here|details?|image)$/i.test(anchorTitle);
     const contextHeading = clean(contextText.split(/ADVERTISEMENT\s+NO|ADVT\.?\s*NO|APPLY ONLINE|LAST DATE TO APPLY|DOWNLOAD ADVERTISEMENT/i)[0] || "");
