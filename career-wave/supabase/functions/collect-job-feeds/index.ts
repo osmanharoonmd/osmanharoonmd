@@ -70,19 +70,19 @@ function decodeXml(s: string) {
     .replace(/\s+/g, " ").trim();
 }
 function parseEntries(xml: string) {
-  const blocks = [...xml.matchAll(/<(item|entry)\\b[^>]*>([\\s\\S]*?)<\\/\\1>/gi)].map((m) => m[2]);
+  const blocks = [...xml.matchAll(/<(item|entry)\b[^>]*>([\s\S]*?)<\/\1>/gi)].map((m) => m[2]);
   return blocks.map((block) => {
-    const title = decodeXml(block.match(/<title\\b[^>]*>([\\s\\S]*?)<\\/title>/i)?.[1] ?? "");
-    const href = block.match(/<link\\b[^>]*href=["']([^"']+)["'][^>]*\\/?\\s*>/i)?.[1];
-    const link = href ?? decodeXml(block.match(/<link\\b[^>]*>([\\s\\S]*?)<\\/link>/i)?.[1] ?? "");
-    const description = decodeXml(block.match(/<(description|summary|content:encoded)\\b[^>]*>([\\s\\S]*?)<\\/\\1>/i)?.[2] ?? "");
+    const title = decodeXml(block.match(/<title\b[^>]*>([\s\S]*?)<\/title>/i)?.[1] ?? "");
+    const href = block.match(/<link\b[^>]*href=["']([^"']+)["'][^>]*\/?\s*>/i)?.[1];
+    const link = href ?? decodeXml(block.match(/<link\b[^>]*>([\s\S]*?)<\/link>/i)?.[1] ?? "");
+    const description = decodeXml(block.match(/<(description|summary|content:encoded)\b[^>]*>([\s\S]*?)<\/\1>/i)?.[2] ?? "");
     return { title, link, description, raw: decodeXml(block).slice(0, 12000) };
-  }).filter((x) => x.title && x.link && /^https:\\/\\//i.test(x.link));
+  }).filter((x) => x.title && x.link && /^https:\/\//i.test(x.link));
 }
 function parseOfficialPage(html: string, pageUrl: string) {
   const base = new URL(pageUrl);
   const keyword = /recruitment|vacanc|career|job|advertisement|notification|notice|apply|employment|selection|application|advt|walk.?in|post/i;
-  const anchors = [...html.matchAll(/<a\\b[^>]*href=["']([^"']+)["'][^>]*>([\\s\\S]*?)<\\/a>/gi)];
+  const anchors = [...html.matchAll(/<a\b[^>]*href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi)];
   const found = new Map<string, { title: string; link: string; description: string; raw: string }>();
   for (const match of anchors) {
     const href = (match[1] ?? "").trim();
@@ -95,14 +95,14 @@ function parseOfficialPage(html: string, pageUrl: string) {
     const baseHost = base.hostname.toLowerCase();
     const sameOfficialDomain = host === baseHost || host.endsWith("." + baseHost) || baseHost.endsWith("." + host);
     if (!sameOfficialDomain) continue;
-    if (!keyword.test(title + " " + link.pathname) && !/\\.pdf(?:$|[?#])/i.test(link.pathname)) continue;
+    if (!keyword.test(title + " " + link.pathname) && !/\.pdf(?:$|[?#])/i.test(link.pathname)) continue;
     if (link.href === base.href || found.has(link.href)) continue;
     const cleanTitle = title || link.pathname.split("/").filter(Boolean).pop() || "Official recruitment notice";
     found.set(link.href, {
       title: cleanTitle,
       link: link.href,
       description: title,
-      raw: "Discovered on official page: " + pageUrl + "\\nLink title: " + cleanTitle + "\\nOfficial link: " + link.href,
+      raw: "Discovered on official page: " + pageUrl + "\nLink title: " + cleanTitle + "\nOfficial link: " + link.href,
     });
   }
   return [...found.values()].slice(0, 40);
