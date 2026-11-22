@@ -9,11 +9,11 @@
 .header{height:auto;min-height:118px;padding-top:12px;padding-bottom:12px}
 .header .brand{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:4px;min-width:0;overflow:visible}
 .header .brand img{width:245px;max-height:72px}
-.brand-description{display:block;max-width:440px;color:#586779;font-size:12px;line-height:1.4;font-weight:600;letter-spacing:.05px}
+.brand-description{display:block;width:max-content;max-width:none;white-space:nowrap;color:#586779;font-size:11px;line-height:1.4;font-weight:600;letter-spacing:.05px}
 @media(max-width:760px){
  .header{min-height:108px;padding:10px 14px;gap:10px}
  .header .brand img{width:190px;max-height:58px}
- .brand-description{max-width:270px;font-size:10px;line-height:1.35}
+ .brand-description{width:auto;max-width:270px;white-space:normal;font-size:10px;line-height:1.35}
  .header .actions{gap:6px}
  .follow{padding:8px 10px;font-size:10px}
 }
