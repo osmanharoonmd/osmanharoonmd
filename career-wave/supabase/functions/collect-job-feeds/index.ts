@@ -81,8 +81,8 @@ function parseEntries(xml: string) {
 }
 function parseOfficialPage(html: string, pageUrl: string) {
   const base = new URL(pageUrl);
-  const positive = /recruitment|vacanc(?:y|ies)|job.?openings?|career.?openings?|advertisement|\badvt\b|notification|apply.?online|current.?openings|engagement|hiring|selection.?for.?posts/i;
-  const negative = /result|admit.?card|call.?letter|answer.?key|response.?sheet|score.?card|marksheet|cut.?off|cutoff|syllabus|scribe|guideline|booklet|training.?material|acquaint|tender|procurement|press.?release/i;
+  const positive = /recruitment|vacanc(?:y|ies)|job.?openings?|career.?openings?|advertisement|(?:^|[^a-z])advt(?:[^a-z]|$)|notification|employment.?notice|engagement|hiring|selection.?for.?posts/i;
+  const negative = /result|admit.?card|call.?letter|answer.?key|response.?sheet|score.?card|marksheet|cut.?off|cutoff|syllabus|scribe|guideline|booklet|training.?material|acquaint|tender|procurement|press.?release|biodata|bio.?data|ctc|undertaking|interview.?schedule|exam.?schedule|information.?handout|apply.?online|apply.?now|registration|application.?form|corrigendum|provisionally.?selected/i;
   const found = new Map<string, { title: string; link: string; description: string; raw: string }>();
   const rowRanges: Array<[number, number]> = [];
   const clean = (v: string) => v.replace(/\s+/g, " ").replace(/\(\s*\d+(?:\.\d+)?\s*(?:kb|mb)\s*\)/ig, "").trim();
@@ -90,6 +90,7 @@ function parseOfficialPage(html: string, pageUrl: string) {
     const href = hrefRaw.trim().replace(/&amp;/g, "&");
     const anchorTitle = clean(decodeXml(anchorHtml)).slice(0, 400);
     if (!href || /^(javascript:|mailto:|tel:|#)/i.test(href)) return;
+    if (negative.test(anchorTitle)) return;
     let link: URL;
     try { link = new URL(href, base); } catch { return; }
     if (link.protocol !== "https:" || (link.port && link.port !== "443") || link.username || link.password) return;
@@ -98,12 +99,15 @@ function parseOfficialPage(html: string, pageUrl: string) {
     let pathName = "";
     try { pathName = decodeURIComponent(link.pathname.split("/").pop() || ""); } catch { pathName = link.pathname.split("/").pop() || ""; }
     pathName = pathName.replace(/\.[^.]+$/, "").replace(/[_-]+/g, " ");
-    const candidateText = [anchorTitle, contextText, pathName, link.pathname].join(" ");
-    if (negative.test(candidateText) || !positive.test(candidateText)) return;
+    const linkText = [anchorTitle, pathName, link.pathname].join(" ");
+    if (negative.test(contextText) || !positive.test(linkText)) return;
     if (link.href === base.href || found.has(link.href)) return;
-    const genericAnchor = !anchorTitle || /^(english|hindi|download|view|click here|apply now|pdf|here|details?)$/i.test(anchorTitle);
-    const title = clean(genericAnchor ? pathName : anchorTitle) || clean(pathName) || "Official recruitment notification";
-    const context = clean(contextText).slice(0, 1200);
+    const genericAnchor = !anchorTitle || /^(english|hindi|download|view|click here|pdf|here|details?|image)$/i.test(anchorTitle);
+    const contextHeading = clean(contextText.split(/ADVERTISEMENT\s+NO|ADVT\.?\s*NO|APPLY ONLINE|LAST DATE TO APPLY|DOWNLOAD ADVERTISEMENT/i)[0] || "");
+    const title = (contextHeading.length >= 18 && /recruitment|engagement|vacanc|hiring|post|officer|manager|assistant|apprentice/i.test(contextHeading)
+      ? contextHeading.slice(0, 220)
+      : clean(genericAnchor ? pathName : anchorTitle)) || "Official recruitment notification";
+    const context = clean(contextText).slice(0, 1600);
     found.set(link.href, {
       title, link: link.href, description: context || title,
       raw: "Discovered on official page: " + pageUrl + "\nPage listing text: " + context +
@@ -114,7 +118,7 @@ function parseOfficialPage(html: string, pageUrl: string) {
   for (const row of rows) {
     const rowStart = row.index ?? 0, rowHtml = row[0];
     rowRanges.push([rowStart, rowStart + rowHtml.length]);
-    const rowText = decodeXml(rowHtml).slice(0, 1200);
+    const rowText = decodeXml(rowHtml).slice(0, 1600);
     const links = [...rowHtml.matchAll(/<a\b[^>]*href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi)];
     for (const link of links) addLink(link[1] ?? "", link[2] ?? "", rowText);
   }
