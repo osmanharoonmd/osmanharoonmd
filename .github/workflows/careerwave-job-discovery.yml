@@ -22,13 +22,9 @@ jobs:
         shell: bash
         env:
           SUPABASE_URL: https://tixpfrymuughmojwuvxq.supabase.co
-          SUPABASE_PUBLISHABLE_KEY: ${{ vars.CAREERWAVE_SUPABASE_PUBLISHABLE_KEY }}
+          SUPABASE_PUBLISHABLE_KEY: sb_publishable_Inal_dG2AeBXvkqGkTLWmw_2PzspxEB
         run: |
           set -euo pipefail
-          if [[ -z "${SUPABASE_PUBLISHABLE_KEY:-}" ]]; then
-            echo "::error::Add the repository variable CAREERWAVE_SUPABASE_PUBLISHABLE_KEY before enabling scheduled discovery."
-            exit 1
-          fi
           oidc_json="$(curl --fail --silent --show-error \
             -H "Authorization: Bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
             "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=careerwave-job-discovery")"
