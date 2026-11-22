@@ -1,0 +1,42 @@
+name: Career Wave job discovery
+
+on:
+  schedule:
+    - cron: "17 */4 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: careerwave-job-discovery
+  cancel-in-progress: false
+
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Request GitHub OIDC identity and run discovery
+        shell: bash
+        env:
+          SUPABASE_URL: https://tixpfrymuughmojwuvxq.supabase.co
+          SUPABASE_PUBLISHABLE_KEY: sb_publishable_Inal_dG2AeBXvkqGkTLWmw_2PzspxEB
+        run: |
+          set -euo pipefail
+          oidc_json="$(curl --fail --silent --show-error \
+            -H "Authorization: Bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=careerwave-job-discovery")"
+          oidc_token="$(jq -r '.value // empty' <<< "$oidc_json")"
+          if [[ -z "$oidc_token" ]]; then
+            echo "::error::GitHub did not return an OIDC token."
+            exit 1
+          fi
+          result="$(curl --fail --silent --show-error --max-time 90 \
+            -X POST "$SUPABASE_URL/functions/v1/collect-job-feeds" \
+            -H "apikey: $SUPABASE_PUBLISHABLE_KEY" \
+            -H "Authorization: Bearer $oidc_token" \
+            -H "Content-Type: application/json" \
+            --data '{}')"
+          jq . <<< "$result"
